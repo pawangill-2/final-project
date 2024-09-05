@@ -1,0 +1,78 @@
+---
+title: "Final Project (Coffee Survey)"
+author: "Pawanpreet Gill"
+format: html
+echo: false
+---
+
+The "Great American Coffee Taste Test" was held in October 2023 by "world champion barista" James Hoffmann and coffee company Cometeer, where viewers filled out a survey about 4 coffees they ordered from Cometeer for the tasting. 
+
+```{r}
+#| warning: false
+#| message: false
+library(here)
+library(gtsummary)
+library(tidyverse)
+coffee_survey1 <- readRDS(here::here("/Users/pawanpreetgill/Desktop/R Bootcamp/final-project/coffee_survey1.rds"))
+```
+
+# Descriptive statistics table using `tbl_summary()`
+```{r}
+#| label: tbl-one
+#| tbl-cap: "This table shows descriptive statistics"
+table1 <- tbl_summary(
+	coffee_survey1,
+	by = cups_bin,
+	include = c(strength, roast_level, caffeine),
+	label = list(
+		strength ~ "Preferred coffee strength",
+		roast_level ~ "Preferred coffee roast level",
+		caffeine ~ "Preffered caffeine amount"
+	),
+	missing_text = "Missing")
+table1
+```
+
+# Regression table
+```{r}
+#| label: tbl-two
+#| tbl-cap: "This is a table with regression results"
+tbl_uvregression(
+	coffee_survey1,
+	y = cups_bin,
+	include = c(strength, roast_level, caffeine),
+	method = lm)
+```
+As shown in @tbl-two, regression results of coffee strength, roast, and caffeine are shown by amount of cups drank in a day.
+
+# Figure-Barplot
+```{r}
+#| label: fig-barplot
+#| fig-cap: "This is a barplot that shows preferred roasts."
+barplot(table(coffee_survey1$roast_level),
+				main = "Barplot of Roast Levels",
+				xlab = "Roast Level",
+				ylab = "Frequency",
+				col = "lightblue")
+png(here("plots", "fig-barplot.png"))
+```
+As shown in @fig-barplot, light roast was the most popular.
+
+# Writing/creating new function using poisson model
+```{r}
+poisson_model <- glm(cups_bin ~ strength + roast_level + caffeine,
+										 data = coffee_survey1,
+										 family = poisson)
+tbl_regression(
+	poisson_model,
+	exponentiate = TRUE,
+	label = list(
+		strength ~ "Strength",
+		roast_level ~ "Roast Level",
+		caffeine ~ "Caffeine Amount"
+	)
+)
+```
+
+There were `r nrow(coffee_survey1)` participants.
+`r inline_text(table1, variable = "roast_level", column = "stat_1")`
